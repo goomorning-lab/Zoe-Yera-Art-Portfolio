@@ -854,50 +854,262 @@
     display: block;
   }
 
-  /* character mini-bio: small portrait + text */
-  .char-bio {
+  /* character showcase: flip card beside progress grid */
+  .char-showcase {
     display: flex;
+    gap: 34px;
     align-items: center;
-    gap: 30px;
-    margin-top: 40px;
+    margin-top: 48px;
   }
 
-  .char-bio-image {
-    flex: 0 0 440px;
-    max-width: 440px;
-    border-radius: 8px;
+  .char-showcase .flip-card { flex: 0 0 auto; }
+
+  .char-showcase .char-progress {
+    flex: 1 1 0;
+    min-width: 0;
+    margin-top: 0;
+  }
+
+  /* flip card */
+  .flip-card {
+    width: 380px;
+    max-width: 100%;
+    aspect-ratio: 3 / 4;
+    perspective: 1300px;
+    cursor: pointer;
+    outline: none;
+    --tiltX: 0deg;
+    --tiltY: 0deg;
+    --holo-x: 50%;
+    --holo-y: 50%;
+  }
+
+  /* tilt layer (follows the pointer) */
+  .card-tilt {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transform: rotateX(var(--tiltX)) rotateY(var(--tiltY));
+    transition: transform 0.35s ease;
+  }
+
+  .flip-card.is-hovering .card-tilt {
+    transition: transform 0.08s ease-out;
+  }
+
+  /* flip layer */
+  .flip-card-inner {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .flip-card.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .flip-card-front,
+  .flip-card-back {
+    position: absolute;
+    inset: 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 12px;
     overflow: hidden;
     border: 1px solid var(--line);
-    background: var(--paper-tint);
-    box-shadow: 0 10px 28px rgba(43,35,24,0.14);
+    box-shadow: 0 14px 34px rgba(43,35,24,0.18);
   }
 
-  .char-bio-image img { width: 100%; height: auto; display: block; }
+  .flip-card-front {
+    background: var(--paper-tint);
+  }
 
-  .char-bio-text { flex: 1; }
+  .flip-card-front img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* sweeping shine across the card front on hover (same as tool icons) */
+  .flip-card-front::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -130%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      115deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.65) 50%,
+      rgba(255,255,255,0) 100%
+    );
+    transform: skewX(-18deg);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .flip-card:hover .flip-card-front::after,
+  .flip-card:focus-visible .flip-card-front::after {
+    animation: tool-shine 0.7s ease;
+  }
+
+  .flip-hint {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #fff;
+    background: rgba(26,26,26,0.62);
+    padding: 8px 16px;
+    border-radius: 999px;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    transition: background 0.2s ease;
+  }
+
+  .flip-card:hover .flip-hint,
+  .flip-card:focus-visible .flip-hint {
+    background: var(--clay);
+  }
+
+  /* card back = light holographic foil trading card */
+  .flip-card-back {
+    transform: rotateY(180deg);
+    background:
+      linear-gradient(145deg, #ffffff 0%, #f6f1fb 46%, #eef6ff 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 30px 28px;
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
+  }
+
+  /* pure-CSS pastel rainbow foil + fine diffraction stripes, driven by pointer */
+  .holo-foil {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(
+        115deg,
+        rgba(255,120,190,0.55) 0%,
+        rgba(120,215,255,0.55) 20%,
+        rgba(190,150,255,0.55) 40%,
+        rgba(150,255,205,0.55) 60%,
+        rgba(255,230,140,0.55) 80%,
+        rgba(255,120,190,0.55) 100%
+      ),
+      repeating-linear-gradient(
+        68deg,
+        rgba(255,255,255,0) 0px,
+        rgba(255,255,255,0.28) 2px,
+        rgba(255,255,255,0) 5px,
+        rgba(255,255,255,0) 9px
+      );
+    background-size: 320% 320%, 100% 100%;
+    background-position: var(--holo-x) var(--holo-y), var(--holo-x) var(--holo-y);
+    background-repeat: no-repeat;
+    mix-blend-mode: soft-light;
+    filter: saturate(1.35) brightness(1.08);
+    opacity: 0.45;
+    transition: opacity 0.3s ease;
+  }
+
+  .flip-card.is-hovering .holo-foil { opacity: 0.9; }
+
+  /* moving specular glare */
+  .card-glare {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(
+      circle at var(--holo-x) var(--holo-y),
+      rgba(255,255,255,0.85) 0%,
+      rgba(255,255,255,0.3) 16%,
+      rgba(255,255,255,0) 42%
+    );
+    mix-blend-mode: overlay;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .flip-card.is-hovering .card-glare { opacity: 1; }
+
+  .flip-card-back .char-bio-text {
+    position: relative;
+    z-index: 2;
+    flex: none;
+  }
+
+  .flip-card-back p {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 7px;
+    max-width: none;
+    line-height: 1.5;
+  }
 
   .char-name {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: clamp(28px, 3.4vw, 40px);
+    font-size: clamp(26px, 3.2vw, 36px);
     letter-spacing: 0.02em;
     line-height: 1.1;
+    color: var(--ink);
   }
 
   .char-name span { color: var(--clay); }
 
   .char-sub {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     color: #8A8A82;
-    margin: 4px 0 14px;
+    margin: 4px 0 12px;
   }
 
-  .char-bio-text p {
-    font-size: 14.5px;
-    color: var(--ink-soft);
-    margin-bottom: 8px;
-    max-width: 46ch;
+  .char-stats {
+    list-style: none;
+    margin: 0 0 14px;
+    padding: 12px 0;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    display: grid;
+    gap: 7px;
+  }
+
+  .char-stats li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .char-stats .stat-k {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #9A9A90;
+  }
+
+  .char-stats .stat-v {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    text-align: right;
   }
 
   /* progress + scrapped shared label */
@@ -925,7 +1137,7 @@
 
   .progress-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
 
@@ -953,12 +1165,11 @@
     background: var(--paper);
   }
 
-  .char-bio { margin-top: 48px; }
-
-  @media (max-width: 640px) {
-    .char-bio { flex-direction: column; align-items: flex-start; }
-    .char-bio-image { flex-basis: auto; max-width: 220px; align-self: center; }
-    .progress-grid { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 760px) {
+    .char-showcase { flex-direction: column; align-items: center; }
+    .char-showcase .flip-card { width: 320px; }
+    .char-showcase .char-progress { width: 100%; }
+    .flip-card-back { padding: 24px 22px; }
   }
 
   .work-card {
@@ -1083,15 +1294,28 @@
   }
 
   .lightbox img {
-    max-width: 96%;
-    max-height: 96%;
+    max-width: 90%;
+    max-height: 90%;
     object-fit: contain;
-    border-radius: 6px;
+    background: #fff;
+    padding: 14px;
+    border-radius: 8px;
     box-shadow: 0 24px 70px rgba(0,0,0,0.55);
   }
 
+  /* progress sketches open at a uniform square size (matched to smallest) */
+  .lightbox.uniform img {
+    width: min(86vw, 80vh, 460px);
+    height: min(86vw, 80vh, 460px);
+    max-width: none;
+    max-height: none;
+    object-fit: contain;
+  }
+
   .modal-image-slot img,
-  .modal-hero-image img { cursor: zoom-in; }
+  .modal-hero-image img,
+  .progress-item img,
+  .marquee-item img { cursor: zoom-in; }
 
   /* ---------- MODAL ---------- */
 
@@ -1341,6 +1565,7 @@
     color: #fff;
     opacity: 0;
     transition: opacity 0.25s ease;
+    pointer-events: none;
   }
 
   .marquee-item:hover .marquee-label { opacity: 1; }
@@ -1730,23 +1955,42 @@
           <video src="Images/Final%20Video.mp4" autoplay muted loop playsinline preload="auto"></video>
         </div>
 
-        <div class="char-progress">
-          <div class="char-progress-label" data-ja="下書きから完成まで">From sketch to final</div>
-          <div class="progress-grid">
-            <figure class="progress-item"><img src="Images/1.jpg" alt="Capri early sketch"><figcaption data-ja="初期下書き">Early sketch</figcaption></figure>
-            <figure class="progress-item"><img src="Images/3.jpg" alt="Capri design sketch"><figcaption data-ja="デザイン画">Design sketch</figcaption></figure>
-            <figure class="progress-item"><img src="Images/2.jpg" alt="Capri chibi sketch"><figcaption data-ja="ミニキャラ下書き">Chibi sketch</figcaption></figure>
-            <figure class="progress-item"><img src="Images/me.jpg" alt="Capri final art"><figcaption data-ja="完成イラスト">Final art</figcaption></figure>
+        <div class="char-showcase">
+          <div class="flip-card" tabindex="0" role="button" aria-label="Flip to read about Capri">
+            <div class="card-tilt">
+              <div class="flip-card-inner">
+                <div class="flip-card-front">
+                  <img src="Images/FUzN3z7aIAAkpMy.jpg" alt="Capri character art">
+                  <span class="flip-hint" data-ja="クリックしてね">click me</span>
+                </div>
+                <div class="flip-card-back">
+                  <div class="holo-foil" aria-hidden="true"></div>
+                  <div class="card-glare" aria-hidden="true"></div>
+                  <div class="char-bio-text">
+                    <div class="char-name">Capri <span>♑</span></div>
+                    <div class="char-sub" data-ja="半分ヤギ、半分魚">Half goat / half fish</div>
+                    <ul class="char-stats">
+                      <li><span class="stat-k" data-ja="星座">Sign</span><span class="stat-v" data-ja="やぎ座 ♑">Capricorn ♑</span></li>
+                      <li><span class="stat-k" data-ja="タイプ">Type</span><span class="stat-v" data-ja="ヤギ × 魚">Goat × Fish</span></li>
+                      <li><span class="stat-k" data-ja="制作ツール">Rigged in</span><span class="stat-v">Live2D</span></li>
+                      <li><span class="stat-k" data-ja="制作">Made by</span><span class="stat-v" data-ja="ゾーイ（すべて独りで）">Zoe — solo</span></li>
+                    </ul>
+                    <p data-ja="Live2Dを学ぶために制作した初めてのオリジナルキャラクターです。デザイン、イラスト、リギングはすべて私が担当しました。">My first original character, created to learn Live2D — design, art, and rig all done by me.</p>
+                    <p data-ja="趣味として、独学で一から制作しました。">Made as a hobbyist, from scratch, on my own means.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div class="char-bio">
-          <div class="char-bio-image"><img src="Images/FUzN3z7aIAAkpMy.jpg" alt="Capri character art"></div>
-          <div class="char-bio-text">
-            <div class="char-name">Capri <span>♑</span></div>
-            <div class="char-sub" data-ja="半分ヤギ、半分魚">Half goat / half fish</div>
-            <p data-ja="Live2Dを学ぶために制作したキャラクターです。デザイン、イラスト、リギングはすべて私が担当しました。">A character I created to learn Live2D — character design, art, and rig all done by me.</p>
-            <p data-ja="趣味として、独学で制作しました。">Made as a hobbyist, on my own means.</p>
+          <div class="char-progress">
+            <div class="char-progress-label" data-ja="下書きから完成まで">From sketch to final</div>
+            <div class="progress-grid">
+              <figure class="progress-item"><img src="Images/1.jpg" alt="Capri early sketch"><figcaption data-ja="初期下書き">Early sketch</figcaption></figure>
+              <figure class="progress-item"><img src="Images/3.jpg" alt="Capri design sketch"><figcaption data-ja="デザイン画">Design sketch</figcaption></figure>
+              <figure class="progress-item"><img src="Images/2.jpg" alt="Capri chibi sketch"><figcaption data-ja="ミニキャラ下書き">Chibi sketch</figcaption></figure>
+              <figure class="progress-item"><img src="Images/me.jpg" alt="Capri final art"><figcaption data-ja="完成イラスト">Final art</figcaption></figure>
+            </div>
           </div>
         </div>
       </div>
@@ -2040,13 +2284,48 @@
   var lightbox = document.getElementById('lightbox');
   var lightboxImg = lightbox ? lightbox.querySelector('img') : null;
 
-  document.querySelectorAll('.modal-image-slot img, .modal-hero-image img').forEach(function(img) {
+  document.querySelectorAll('.modal-image-slot img, .modal-hero-image img, .progress-item img, .marquee-item img').forEach(function(img) {
     img.addEventListener('click', function(e) {
       e.stopPropagation();
       if (!lightbox) return;
       lightboxImg.src = img.src;
       lightboxImg.alt = img.alt;
+      // progress sketches open at a uniform square size; others fit naturally
+      lightbox.classList.toggle('uniform', !!img.closest('.progress-item'));
       lightbox.classList.add('open');
+    });
+  });
+
+  // Flip card: click (or Enter/Space) to flip; pointer tilt to reveal the foil
+  document.querySelectorAll('.flip-card').forEach(function(card) {
+    var MAX_TILT = 14;
+
+    card.addEventListener('click', function() {
+      card.classList.toggle('flipped');
+    });
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        card.classList.toggle('flipped');
+      }
+    });
+
+    card.addEventListener('mousemove', function(e) {
+      var r = card.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width;   // 0..1
+      var py = (e.clientY - r.top) / r.height;   // 0..1
+      card.style.setProperty('--tiltY', ((px - 0.5) * 2 * MAX_TILT).toFixed(2) + 'deg');
+      card.style.setProperty('--tiltX', (-(py - 0.5) * 2 * MAX_TILT).toFixed(2) + 'deg');
+      card.style.setProperty('--holo-x', (px * 100).toFixed(1) + '%');
+      card.style.setProperty('--holo-y', (py * 100).toFixed(1) + '%');
+      card.classList.add('is-hovering');
+    });
+    card.addEventListener('mouseleave', function() {
+      card.style.setProperty('--tiltX', '0deg');
+      card.style.setProperty('--tiltY', '0deg');
+      card.style.setProperty('--holo-x', '50%');
+      card.style.setProperty('--holo-y', '50%');
+      card.classList.remove('is-hovering');
     });
   });
 
