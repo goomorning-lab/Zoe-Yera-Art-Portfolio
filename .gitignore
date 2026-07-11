@@ -1,0 +1,10 @@
+# Local video master (compressed "Final Video.mp4" is committed instead)
+Images/Final Video_original.mp4
+
+# Local tooling
+.claude/
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
+desktop.ini
